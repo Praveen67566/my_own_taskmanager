@@ -108,12 +108,20 @@
     }
 
     function addSubtask(containerId) {
+      let taskid = '';
+      for(let i=0;i<containerId.length();i++){
+        if(containerId.charAt(i)=='-'){
+            let index = i;
+            taskid += containerId.charAt(i)
+        }
+      }
       const container = document.getElementById(containerId);
+      
       const subtask = document.createElement('div');
       subtask.className = 'flex items-center gap-2 py-1';
 
       subtask.innerHTML = `
-        <input type="checkbox" class="w-3 h-3" data-id="<%= task.id %>"/>
+        <input type="checkbox" class="w-3 h-3" />
         <input type="text" placeholder="Enter subtask..." class="border px-2 py-1 text-xs rounded w-full" />
       `;
 
