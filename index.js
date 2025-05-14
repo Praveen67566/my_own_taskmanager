@@ -42,30 +42,35 @@ app.get('/', async (req, res) => {
 
 app.post('/create-task', async (req, res) => {
 
-    const { title, assoc, module, category } = req.body;
+    try {
+        const { title, assoc, module, category } = req.body;
 
-    if (!title || !assoc || !module || !category) {
-        throw new AppError('title and assoc is required', 400);
+        if (!title || !assoc || !module || !category) {
+            throw new AppError('title and assoc is required', 400);
+        }
+
+        const task = await Task.create({
+            due: Date.now(),
+            title,
+            assoc,
+            module,
+            category
+        })
+
+        if (!task) {
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        res.redirect('/')
+    } catch (error) {
+       throw new AppError("Internal Server Error",500);
     }
-
-    const task = await Task.create({
-        due: Date.now(),
-        title,
-        assoc,
-        module,
-        category
-    })
-
-    if (!task) {
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-
-    res.redirect('/')
 
 })
 
 app.post(`/tasks/:taskId`, async (req, res) => {
-    const { taskId } = req.params;
+  try {
+        const { taskId } = req.params;
 
     const { isChecked } = req.body;
 
@@ -92,6 +97,9 @@ app.post(`/tasks/:taskId`, async (req, res) => {
     }
 
     res.status(200).json({ task });
+  } catch (error) {
+    throw new AppError("Internal Server Error");
+  }
 })
 
 app.delete('/tasks/:taskId', async (req, res) => {
@@ -106,21 +114,21 @@ app.delete('/tasks/:taskId', async (req, res) => {
 
         const completedTask = await CompletedTask.create({
             taskid: completed._id,
-            due:completed.due,
-            title:completed.title,
-            assoc:completed.assoc,
-            status:completed.status,
-            lastupdated:completed.lastupdated,
-            important:completed.important,
-            module:completed.module,
-            category:completed.category,
-            subtask:completed.subtask,
+            due: completed.due,
+            title: completed.title,
+            assoc: completed.assoc,
+            status: completed.status,
+            lastupdated: completed.lastupdated,
+            important: completed.important,
+            module: completed.module,
+            category: completed.category,
+            subtask: completed.subtask,
             marks,
         })
 
 
         const task = await Task.deleteOne({ _id: taskId })
-        
+
         completedTask.marks += 10;
 
         completedTask.save();
@@ -163,7 +171,7 @@ app.put(`/tasks/:taskId`, async (req, res) => {
 
 app.get('/Today', async (req, res) => {
     const alltasks = await Task.find({}).sort({ createdAt: -1 });
-    const completedTask = await CompletedTask.find({}).sort({createdAt:-1});
+    const completedTask = await CompletedTask.find({}).sort({ createdAt: -1 });
 
     let taskwithsamedue = [];
     const currentDate = new Date().toLocaleDateString('en-GB', {
