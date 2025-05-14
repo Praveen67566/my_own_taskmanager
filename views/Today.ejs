@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Today</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Top Nav Bar -->
+  <div class="bg-white shadow p-4 flex justify-between items-center">
+    <div class="flex gap-6">
+      <span class="font-semibold text-gray-700"><a href="/">Dashboard</a></span>
+      <span class="font-semibold text-gray-700">Projects</span>
+      <span class="font-semibold text-gray-700">Docs</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <input type="text" class="border px-2 py-1 rounded" placeholder="Search" />
+      <div class="w-8 h-8 rounded-full bg-gray-300"></div>
+      <span class="font-medium">Praveen</span>
+    </div>
+  </div>
+
+  <!-- Main Today Page Content -->
+  <div class="flex items-center justify-center bg-gray-100">
+    <div class="p-6 text-center">
+      <h1 class="text-3xl font-bold text-blue-600 mb-4">TaskBox</h1>
+      <p class="text-gray-700 text-lg">This is your task overview for today.</p>
+    </div>
+  </div>
+
+  <!-- Gmail-style Task Box -->
+  <div class="max-w-5xl mx-auto mt-6 border rounded-md overflow-hidden shadow-sm bg-white">
+    <!-- Header -->
+    <div class="bg-gray-100 px-4 py-2 flex items-center text-sm text-gray-700 font-semibold">
+      <span class="w-6"></span>
+      <span class="w-6 ml-4"></span>
+      <span class="ml-4 flex-1">Task</span>
+      <span class="w-32 text-right">Time</span>
+    </div>
+
+    <!-- Task Row -->
+    <% tasks.forEach(task => { %>
+      <div class="flex flex-col border-t" id="task-<%= task.id %>">
+        <!-- Main Task -->
+        <div class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4" />
+          <span onclick="toggleStar(this)" class="star-toggle ml-4" data-id="<%= task.id %>">
+            <svg class="w-5 h-5" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="white" stroke="black" stroke-width="1.2">
+              <path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.561-.955L10 0l2.951 5.955
+              6.561.955-4.756 4.635 1.122 6.545z" />
+            </svg>
+          </span>
+
+          <div class="ml-4 flex-1">
+            <p class="text-sm font-semibold text-gray-900"><%= task.title %></p>
+            <p class="text-xs text-gray-500"><%= task.module %> • <%= task.category %></p>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="addSubtask('task-<%= task.id %>-subtasks')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded shadow-sm transition duration-200">
+              Add Subtask
+            </button>
+            <button class="complete-btn bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded shadow-sm transition duration-200"
+              data-id="<%= task.id %>">
+              Complete
+            </button>
+          </div>
+
+          <span class="text-xs text-gray-500 w-32 text-right"><%= task.lastupdated %></span>
+        </div>
+
+        <!-- Subtask Container -->
+        <div id="task-<%= task.id %>-subtasks" class="ml-12 mb-2"></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <script>
+    function toggleStar(el) {
+      const svg = el.querySelector('svg');
+      const currentFill = svg.getAttribute('fill');
+      const taskId = el.dataset.id;
+      let important;
+
+      if (currentFill === 'white') {
+        important = true;
+        svg.setAttribute('fill', 'yellow');
+      } else {
+        important = false;
+        svg.setAttribute('fill', 'white');
+      }
+
+      fetch(`/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ important })
+      }).then((res)=>{
+        res.json()
+      }).then((data)=>{
+        alert(data)
+      });
+    }
+
+    function addSubtask(containerId) {
+      const container = document.getElementById(containerId);
+      const subtask = document.createElement('div');
+      subtask.className = 'flex items-center gap-2 py-1';
+
+      subtask.innerHTML = `
+        <input type="checkbox" class="w-3 h-3" data-id="<%= task.id %>"/>
+        <input type="text" placeholder="Enter subtask..." class="border px-2 py-1 text-xs rounded w-full" />
+      `;
+
+      container.appendChild(subtask);
+    }
+
+    // Handle complete buttons
+    document.querySelectorAll('.complete-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const taskId = this.dataset.id;
+
+        fetch(`/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+        })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById(`task-${taskId}`).remove();
+            console.log(data);
+          })
+          .catch(error => {
+            console.error("Error deleting task:", error);
+          });
+      });
+    });
+  </script>
+
+</body>
+
+</html>
