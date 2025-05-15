@@ -6,6 +6,7 @@ import { AppError } from "./Utills/appError.js";
 import { Task } from "./Models/taskModel.js";
 import { CompletedTask } from "./Models/completedTaskModel.js";
 import axios from "axios";
+import { CLIENT_RENEG_LIMIT } from "tls";
 
 dotenv.config();
 
@@ -106,26 +107,31 @@ app.delete('/tasks/:taskId', async (req, res) => {
 
     try {
         const { taskId } = req.params;
-        if (taskId) {
-            res.status(400)
+        if (!taskId) {
+            res.status(400).json({message:"taskId is required"});
         }
 
         const completed = await Task.findOne({ _id: taskId });
 
+       
         const completedTask = await CompletedTask.create({
-            taskid: completed._id,
+            taskid: String(completed._id),
             due: completed.due,
             title: completed.title,
             assoc: completed.assoc,
             status: completed.status,
-            lastupdated: completed.lastupdated,
-            important: completed.important,
+            lastupdated: completed.lastupdated ||null,
+            important: completed.important ||null,
             module: completed.module,
             category: completed.category,
             subtask: completed.subtask,
-            marks,
+            marks:0,
         })
+        console.log(completedTask);
 
+        if(!completedTask){
+            res.status(500).json({message:"Internal Server Error"});
+        }
 
         const task = await Task.deleteOne({ _id: taskId })
 

@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const CompletedtaskSchema = new mongoose.Schema({
+   taskid:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"Task"
+  },
   due:{
     type:Date
   },
@@ -32,10 +36,6 @@ const CompletedtaskSchema = new mongoose.Schema({
   marks:{
     type:Number
   },
-  taskid:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"Task"
-  }
 },{timestamps:true})
 
 export const CompletedTask = mongoose.model("CompletedTask",CompletedtaskSchema);
