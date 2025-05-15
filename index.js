@@ -20,7 +20,7 @@ app.set('Views', path.resolve('./views'))
 async function connectDB() {
     try {
         await mongoose.connect(process.env.MONGO_URL).then(() => {
-            app.listen(5000, () => {
+            app.listen(5080, () => {
                 console.log("Mongo Db connected...");
                 console.log("Server is listening....");
             })
