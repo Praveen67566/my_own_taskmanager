@@ -100,33 +100,55 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ important })
-      }).then((res)=>{
-        res.json()
-      }).then((data)=>{
-        alert(data)
-      });
+      }).then(res => res.json())
+        .then(data => {
+          alert("Updated Star");
+        });
     }
 
     function addSubtask(containerId) {
-      let taskid = '';
-      for(let i=0;i<containerId.length;i++){
-        let id = containerId.split('-');
-        taskid = id[1];
-      }
+      const taskId = containerId.split('-')[1];
       const container = document.getElementById(containerId);
-      
+
+      const uniqueId = `subtask-${taskId}-${Date.now()}`;
+
       const subtask = document.createElement('div');
       subtask.className = 'flex items-center gap-2 py-1';
 
       subtask.innerHTML = `
-        <input type="checkbox" class="w-3 h-3" data-id=${taskid} id='addsubtask'/>
-        <input type="text" placeholder="Enter subtask..." class="border px-2 py-1 text-xs rounded w-full" id='subtask' />
+        <input type="checkbox" class="w-3 h-3" data-id="${taskId}" data-input-id="${uniqueId}" />
+        <input type="text" placeholder="Enter subtask..." class="border px-2 py-1 text-xs rounded w-full" id="${uniqueId}" />
       `;
 
       container.appendChild(subtask);
+
+      const checkbox = subtask.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener('change', function () {
+        const inputId = this.getAttribute('data-input-id');
+        const subtaskText = document.getElementById(inputId).value;
+
+        if (!subtaskText.trim()) {
+          alert("Please enter a subtask before checking.");
+          return;
+        }
+
+        fetch(`/tasks/${taskId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ subtask: subtaskText })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert("Subtask added!");
+        })
+        .catch(err => {
+          console.error("Error adding subtask:", err);
+        });
+      });
     }
 
-    // Handle complete buttons
     document.querySelectorAll('.complete-btn').forEach(button => {
       button.addEventListener('click', function () {
         const taskId = this.dataset.id;
@@ -140,32 +162,12 @@
           .then(res => res.json())
           .then(data => {
             document.getElementById(`task-${taskId}`).remove();
-            console.log(data);
           })
           .catch(error => {
             console.error("Error deleting task:", error);
           });
       });
     });
-
-    let abc = document.getElementById('addsubtask');
-    console.log(abc)
-
-    document.getElementById('addsubtask').addEventListener('change',function (){
-      const taskId = this.dataset.id;
-      const subtask = document.getElementById('subtask').innerText;
-      console.log(taskId);
-      console.log(subtask);
-
-      fetch(`/tasks/${taskId}`,{
-        method:'POST',
-          headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ subtask })
-        }
-      )
-    })
   </script>
 
 </body>

@@ -6,7 +6,7 @@ import { AppError } from "./Utills/appError.js";
 import { Task } from "./Models/taskModel.js";
 import { CompletedTask } from "./Models/completedTaskModel.js";
 import axios from "axios";
-import { CLIENT_RENEG_LIMIT } from "tls";
+
 
 dotenv.config();
 
@@ -71,7 +71,8 @@ app.post('/create-task', async (req, res) => {
 
 app.post(`/tasks/:taskId`, async (req, res) => {
   try {
-        const { taskId } = req.params;
+        const { taskId ,subtask} = req.params;
+        console.log(subtask);
 
     const { isChecked } = req.body;
 
@@ -150,7 +151,8 @@ app.delete('/tasks/:taskId', async (req, res) => {
 app.put(`/tasks/:taskId`, async (req, res) => {
 
     try {
-        const { important } = req.body;
+        const { important ,subtask} = req.body;
+        console.log(subtask)
         const taskid = req.params;
 
         if (!taskid) {
@@ -200,3 +202,10 @@ app.get('/Today', async (req, res) => {
         completedTask
     });
 });
+
+app.get('/completed',async (req,res)=>{
+    const completedTasks = await CompletedTask.find({});
+    res.render('completed',{
+        completedTasks
+    });
+})
